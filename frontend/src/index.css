@@ -1,3 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
 *,
 ::before,
 ::after {
@@ -158,4 +163,58 @@ button:hover {
 
 .header .logout-btn:hover {
   background-color: #e63946;
+}
+.dashboard-container {
+  background: #f6f8fa;
+  min-height: 100vh;
+  padding: 32px 0;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.user-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.045);
+  padding: 24px;
+  margin-bottom: 32px;
+  transition: box-shadow 0.14s;
+}
+
+.card:not(:last-child) {
+  margin-bottom: 32px;
+}
+
+.card input, .card select {
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.expense-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.expense-table tr {
+  background: #f7fafc;
+}
+
+.budget-input {
+  margin-left: 12px;
+  width: 160px;
+}
+
+.pie-container {
+  margin: 32px 0;
+  display: flex;
+  justify-content: center;
 }

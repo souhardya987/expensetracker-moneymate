@@ -1,31 +1,57 @@
 import React from "react";
-import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
+import { Pie } from "react-chartjs-2";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28BFF", "#FF6F91"];
+ChartJS.register(ArcElement, Tooltip, Legend);
 
-const CategoryPie = ({ byCategory }) => {
-  if (!byCategory || byCategory.length === 0) {
-    return <p>No spending data for this month.</p>;
-  }
+function CategoryPie({ byCategory, transactions, updateTransaction }) {
+  const labels = Object.keys(byCategory);
+  const data = Object.values(byCategory);
+
+  const chartData = {
+    labels,
+    datasets: [
+      {
+        label: 'Expenses by Category',
+        data,
+        backgroundColor: [
+          '#4F46E5', '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#F472B6'
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const handleEditCategory = (oldCategory, newCategory) => {
+    transactions
+      .filter(t => t.category === oldCategory)
+      .forEach(t => updateTransaction({...t, category: newCategory}));
+  };
 
   return (
-    <PieChart width={400} height={300}>
-      <Pie
-        data={byCategory.map(c => ({ name: c._id, value: c.total }))}
-        cx="50%"
-        cy="50%"
-        outerRadius={100}
-        label
-        dataKey="value"
-      >
-        {byCategory.map((entry, idx) => (
-          <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
-        ))}
-      </Pie>
-      <Tooltip />
-      <Legend />
-    </PieChart>
+    <div>
+      {labels.length === 0 ? (
+        <p className="text-gray-500 text-center">No expenses yet</p>
+      ) : (
+        <>
+          <Pie data={chartData} />
+          <div className="mt-4">
+            {labels.map(label => (
+              <div key={label} className="flex items-center justify-between mb-2">
+                <span>{label}</span>
+                <input
+                  type="text"
+                  placeholder="Edit category"
+                  className="border p-1 rounded"
+                  onBlur={(e) => handleEditCategory(label, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
-};
+}
 
 export default CategoryPie;

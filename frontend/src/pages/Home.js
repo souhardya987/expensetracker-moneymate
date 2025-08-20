@@ -1,140 +1,75 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
-import { APIUrl, handleError, handleSuccess } from '../utils';
-import { ToastContainer } from 'react-toastify';
-import ExpenseTable from './ExpenseTable';
-import ExpenseDetails from './ExpenseDetails';
-import ExpenseForm from './ExpenseForm';
+import React, { useState } from "react";
+import Navbar from "../components/Navbar";
+import CategoryPie from "../components/CategoryPie";
+import ExpenseForm from "./ExpenseForm";
+import ExpenseTable from "./ExpenseTable";
 
 function Home() {
-    const [loggedInUser, setLoggedInUser] = useState('');
-    const [expenses, setExpenses] = useState([]);
-    const [incomeAmt, setIncomeAmt] = useState(0);
-    const [expenseAmt, setExpenseAmt] = useState(0);
+  const user = { name: "Souhardya" };
+  const [transactions, setTransactions] = useState([]);
+  const [budget, setBudget] = useState(5000);
 
-    const navigate = useNavigate();
+  const addTransaction = (transaction) => {
+    setTransactions(prev => [...prev, { ...transaction, id: Date.now() }]);
+  };
 
-    useEffect(() => {
-        setLoggedInUser(localStorage.getItem('loggedInUser'))
-    }, [])
+  const updateTransaction = (updated) => {
+    setTransactions(prev =>
+      prev.map(t => t.id === updated.id ? updated : t)
+    );
+  };
 
-    const handleLogout = (e) => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('loggedInUser');
-        handleSuccess('User Loggedout');
-        setTimeout(() => {
-            navigate('/login');
-        }, 1000)
-    }
-    useEffect(() => {
-        const amounts = expenses.map(item => item.amount);
-        const income = amounts.filter(item => item > 0)
-            .reduce((acc, item) => (acc += item), 0);
-        const exp = amounts.filter(item => item < 0)
-            .reduce((acc, item) => (acc += item), 0) * -1;
-        setIncomeAmt(income);
-        setExpenseAmt(exp);
-    }, [expenses])
+  const income = transactions.filter(t => t.type === "income").reduce((a,b)=>a+b.amount,0);
+  const expenses = transactions.filter(t => t.type === "expense").reduce((a,b)=>a+b.amount,0);
+  const balance = income - expenses;
 
-    const deleteExpens = async (id) => {
-        try {
-            const url = `${APIUrl}/expenses/${id}`;
-            const headers = {
-                headers: {
-                    'Authorization': localStorage.getItem('token')
-                },
-                method: "DELETE"
-            }
-            const response = await fetch(url, headers);
-            if (response.status === 403) {
-                localStorage.removeItem('token');
-                navigate('/login');
-                return
-            }
-            const result = await response.json();
-            handleSuccess(result?.message)
-            console.log('--result', result.data);
-            setExpenses(result.data);
-        } catch (err) {
-            handleError(err);
-        }
-    }
+  const byCategory = transactions
+    .filter(t => t.type === "expense")
+    .reduce((acc, t) => {
+      acc[t.category] = (acc[t.category] || 0) + t.amount;
+      return acc;
+    }, {});
 
-    const fetchExpenses = async () => {
-        try {
-            const url = `${APIUrl}/expenses`;
-            const headers = {
-                headers: {
-                    'Authorization': localStorage.getItem('token')
-                }
-            }
-            const response = await fetch(url, headers);
-            if (response.status === 403) {
-                localStorage.removeItem('token');
-                navigate('/login');
-                return
-            }
-            const result = await response.json();
-            console.log('--result', result.data);
-            setExpenses(result.data);
-        } catch (err) {
-            handleError(err);
-        }
-    }
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <Navbar user={user} onLogout={() => console.log("Logout clicked")} />
 
+      <div className="max-w-7xl mx-auto px-8 py-20 grid grid-cols-3 gap-8">
+        <div className="col-span-2 space-y-6">
+          <div className="bg-white p-6 rounded-xl shadow">
+            <ExpenseForm addTransaction={addTransaction} />
+          </div>
 
-
-    const addTransaction = async (data) => {
-        try {
-            const url = `${APIUrl}/expenses`;
-            const headers = {
-                headers: {
-                    'Authorization': localStorage.getItem('token'),
-                    'Content-Type': 'application/json'
-                },
-                method: "POST",
-                body: JSON.stringify(data)
-            }
-            const response = await fetch(url, headers);
-            if (response.status === 403) {
-                localStorage.removeItem('token');
-                navigate('/login');
-                return
-            }
-            const result = await response.json();
-            handleSuccess(result?.message)
-            console.log('--result', result.data);
-            setExpenses(result.data);
-        } catch (err) {
-            handleError(err);
-        }
-    }
-
-    useEffect(() => {
-        fetchExpenses()
-    }, [])
-
-    return (
-        <div>
-            <div className='user-section'>
-                <h1>Welcome {loggedInUser}</h1>
-                <button onClick={handleLogout}>Logout</button>
-            </div>
-            <ExpenseDetails
-                incomeAmt={incomeAmt}
-                expenseAmt={expenseAmt}
-            />
-
-            <ExpenseForm
-                addTransaction={addTransaction} />
-
-            <ExpenseTable
-                expenses={expenses}
-                deleteExpens={deleteExpens}
-            />
-            <ToastContainer />
+          <div className="bg-white p-6 rounded-xl shadow">
+            <ExpenseTable transactions={transactions} updateTransaction={updateTransaction} />
+          </div>
         </div>
-    )
+
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-xl shadow text-center">
+            <h2 className="text-xl font-bold mb-4">💰 Budget</h2>
+            <input
+              type="number"
+              value={budget}
+              onChange={e=>setBudget(Number(e.target.value))}
+              className="border p-2 rounded mb-2 w-full text-right"
+            />
+            <p>Income: ₹{income}</p>
+            <p>Expenses: ₹{expenses}</p>
+            <p className="font-bold">Balance: ₹{balance}</p>
+          </div>
+
+          <div className="bg-white p-6 rounded-xl shadow">
+            <CategoryPie 
+              byCategory={byCategory} 
+              transactions={transactions} 
+              updateTransaction={updateTransaction} 
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default Home
+export default Home;

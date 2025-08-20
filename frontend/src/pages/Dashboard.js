@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getBudget, getMonthlySummary } from "../api/budget"; // ✅ fixed path
+import { getBudget, getMonthlySummary } from "../api/budget"; 
 
 function Dashboard({ token }) {
   const [budget, setBudget] = useState(null);
