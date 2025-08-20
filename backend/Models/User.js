@@ -30,7 +30,16 @@ const UserSchema = new Schema({
                 default: Date.now
             }
         }
-    ]
+    ],
+    monthlyBudget: {
+    type: Number,
+    default: 0, // 0 means not set
+    min: 0
+  },
+    budgetCurrency: {
+    type: String,
+    default: "INR"
+  }
 });
 
 const UserModel = mongoose.model('users', UserSchema);
